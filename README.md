@@ -79,9 +79,9 @@ printenv | grep -E 'DEBUG|MODEL_NAME|LOG_FILE|APP_PORT|APP_NAME|ES_HOST|INDEX_NA
 
 ## Speech Recognition
 
-### Project Directory Structure
+### Relevant Directories and Files
 
-The files and directories which might be relevant to this section of the project are as follows:
+The directories and their files, relevant to this section, are as follows:
 ```
 htx-assessment/
 │
@@ -208,9 +208,9 @@ deactivate
 
 ## Elasticsearch Cluster
 
-### Project Directory Structure
+### Relevant Directories and Files
 
-The files and directories which might be relevant to this section of the project are as follows:
+The directories and their files, relevant to this section, are as follows:
 ```
 htx-assessment/
 │
