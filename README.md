@@ -10,7 +10,7 @@ This repository contains the codebase for the HTX assessment.
 
 The following instructions are designed for use with Python 3.10.
 
-Before starting, ensure that the necessary environment variables are properly configured. This is neccessary for (1) [Speech Recognition](#speech-recognition) and (2)[Elastic Search](#elasticsearch-cluster).
+Before starting, ensure that the necessary environment variables are properly configured. This is neccessary for (1) [Speech Recognition](#speech-recognition), (2) [Elasticsearch Cluster](#elasticsearch-cluster) and (3)[UI In Elasticsearch](#ui-in-elasticsearch).
 
 1. Set up the following environment variables in a `.env` file located at the root of the repository:
 ```bash
@@ -281,3 +281,24 @@ deactivate
 ## UI in Elasticsearch
 
 ### Setting Up the UI for  Cluster
+
+1. Navigate to `search-ui` directory (from the root of the repository).
+```bash
+mkdir search-ui
+cd search-ui
+```
+
+2. Initialize a new React project.
+```bash
+npm init -y
+```
+
+3. Install the required dependencies.
+```bash
+npm install react@18 react-dom@18 @testing-library/react @testing-library/jest-dom @testing-library/user-event web-vitals
+```
+
+4. Install the `react-scripts` package.
+```bash
+npm install react-scripts
+```
