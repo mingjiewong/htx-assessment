@@ -84,7 +84,6 @@ printenv | grep -E 'DEBUG|MODEL_NAME|LOG_FILE|APP_PORT|APP_NAME|ES_HOST|INDEX_NA
 The directories and their files, relevant to this section, are as follows:
 ```
 htx-assessment/
-│
 ├── asr/
 │   ├── cv-decode.py
 │   ├── Dockerfile
@@ -114,7 +113,6 @@ htx-assessment/
 │       │    ├── .placeholder
 │       │    └── ...
 │       └── cv-valid-dev.csv
-│
 ├── .env
 ├── .gitignore
 └── README.md
@@ -213,17 +211,14 @@ deactivate
 The directories and their files, relevant to this section, are as follows:
 ```
 htx-assessment/
-│
 ├── asr/
 │   └── data/
 │       └── cv-valid-dev.csv
-│
 ├── elastic-backend/
 │   ├── cv-index.py
 │   ├── docker-compose.yaml
 │   ├── logging_config.py
 │   └── requirements.txt
-│
 ├── .env
 ├── .gitignore
 └── README.md
