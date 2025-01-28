@@ -10,7 +10,7 @@ This repository contains the codebase for the HTX assessment.
 
 The following instructions are designed for use with Python 3.10.
 
-Before starting, ensure that the necessary environment variables are properly configured. This is neccessary for (1) [Speech Recognition](#speech-recognition), (2) [Elasticsearch Cluster](#elasticsearch-cluster) and (3)[UI In Elasticsearch](#ui-in-elasticsearch).
+Before starting, ensure that the necessary environment variables are properly configured. This is neccessary for (1) [Speech Recognition](#speech-recognition), (2) [Elasticsearch Cluster](#elasticsearch-cluster) and (3) [UI In Elasticsearch](#ui-in-elasticsearch).
 
 1. Set up the following environment variables in a `.env` file located at the root of the repository:
 ```bash
