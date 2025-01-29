@@ -12,6 +12,11 @@ services:
       - bootstrap.memory_lock=false                                 # Disable memory locking (changed from true for development purposes)
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"                                # Set minimum and maximum JVM heap size to 1GB
       - xpack.security.enabled=false                                # Disable X-Pack security features for simplicity
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+      - http.cors.allow-methods=OPTIONS, HEAD, GET, POST, PUT, DELETE
+      - http.cors.allow-headers=*
+      - http.cors.allow-credentials=true
     ulimits:
       memlock:
         soft: -1   # Remove soft limit on memory locking
@@ -34,6 +39,11 @@ services:
       - bootstrap.memory_lock=false                                 # Disable memory locking (changed from true for development purposes)
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"                                # Set minimum and maximum JVM heap size to 1GB
       - xpack.security.enabled=false                                # Disable X-Pack security features for simplicity
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+      - http.cors.allow-methods=OPTIONS, HEAD, GET, POST, PUT, DELETE
+      - http.cors.allow-headers=*
+      - http.cors.allow-credentials=true
     ulimits:
       memlock:
         soft: -1   # Remove soft limit on memory locking
@@ -43,20 +53,17 @@ services:
     networks:
       - esnet      # Connect the container to the 'esnet' network
 
-  search-ui:
-    image: elasticsearch/search-ui:latest                           # Replace with the appropriate Search UI image
-    container_name: search-ui                                       # Name of the Search UI container
-    ports:
-      - 3000:3000  # Expose Search UI on http://localhost:3000/
-    environment:
-      - SEARCH_UI_ELASTICSEARCH_URL=http://elasticsearch-node1:9200  # URL of the Elasticsearch cluster
-      - SEARCH_UI_INDEX=cv-transcriptions                            # Elasticsearch index to search
-      - SEARCH_UI_FIELDS=generated_text,duration,age,gender,accent   # Fields to enable for search
-    depends_on:
-      - elasticsearch-node1
-      - elasticsearch-node2
-    networks:
-      - esnet      # Connect the container to the 'esnet' network
+  # search-ui:
+  #   build:
+  #     context: ../search-ui                                         # Path to the frontend application's Dockerfile
+  #   container_name: search-ui                                       # Name of the Search UI container
+  #   ports:
+  #     - 3000:80  # Expose Search UI on http://localhost:3000/
+  #   depends_on:
+  #     - elasticsearch-node1
+  #     - elasticsearch-node2
+  #   networks:
+  #     - esnet      # Connect the container to the 'esnet' network
 
 volumes:
   esdata-node1:
