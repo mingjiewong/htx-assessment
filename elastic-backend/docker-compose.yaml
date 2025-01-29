@@ -53,17 +53,19 @@ services:
     networks:
       - esnet      # Connect the container to the 'esnet' network
 
-  # search-ui:
-  #   build:
-  #     context: ../search-ui                                         # Path to the frontend application's Dockerfile
-  #   container_name: search-ui                                       # Name of the Search UI container
-  #   ports:
-  #     - 3000:80  # Expose Search UI on http://localhost:3000/
-  #   depends_on:
-  #     - elasticsearch-node1
-  #     - elasticsearch-node2
-  #   networks:
-  #     - esnet      # Connect the container to the 'esnet' network
+  search-ui:
+    build:
+      context: ../search-ui                                         # Path to the frontend application's Dockerfile
+    container_name: search-ui                                       # Name of the Search UI container
+    ports:
+      - 3000:80  # Expose Search UI on http://localhost:3000/
+    depends_on:
+      - elasticsearch-node1
+      - elasticsearch-node2
+    environment:
+      - REACT_APP_ELASTICSEARCH_HOST=http://elasticsearch-node1:9200 # Set the Elasticsearch host for the frontend application
+    networks:
+      - esnet      # Connect the container to the 'esnet' network
 
 volumes:
   esdata-node1:

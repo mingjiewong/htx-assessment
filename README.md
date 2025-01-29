@@ -250,7 +250,7 @@ pip install -r requirements.txt
 
 4. Start Elasticsearch Cluster.
 ```bash
-podman-compose up -d
+podman-compose up -d --build
 ```
 
 5. To verify the health of the Elasticsearch cluster, run the following `curl` command:
