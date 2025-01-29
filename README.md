@@ -275,25 +275,33 @@ deactivate
 
 ## UI in Elasticsearch
 
-### Setting Up the UI for  Cluster
+### Setting Up the UI for Cluster
 
-1. Navigate to `search-ui` directory (from the root of the repository).
+1. Set npm to use legacy peer dependencies:
 ```bash
-mkdir search-ui
+# npm config set legacy-peer-deps true
+# npm config delete legacy-peer-deps
+# npm config list 
+```
+
+2. Create a new React application:
+```bash
+# npx create-react-app search-ui 
+# npm install -g yarn
+yarn create react-app search-ui
+```
+
+3. Navigate to the project directory:
+```bash
 cd search-ui
+yarn remove react react-dom
+yarn add react@17 react-dom@17
+yarn add @elastic/react-search-ui @elastic/search-ui-elasticsearch-connector @elastic/react-search-ui-views
+yarn start
+
+# npm install ajv ajv-keywords --save
 ```
 
-2. Initialize a new React project.
 ```bash
-npm init -y
-```
-
-3. Install the required dependencies.
-```bash
-npm install react@18 react-dom@18 @testing-library/react @testing-library/jest-dom @testing-library/user-event web-vitals
-```
-
-4. Install the `react-scripts` package.
-```bash
-npm install react-scripts
+npm start
 ```
