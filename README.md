@@ -273,7 +273,12 @@ python cv-index.py
 curl -X GET "http://localhost:9200/cv-transcriptions/_search?pretty&q=*:*"
 ```
 
-8. [Optional] Deactivate the virtual environment.
+8. [Optional] Shut down the Elasticsearch cluster.
+```bash
+podman-compose down
+```
+
+9. [Optional] Deactivate the virtual environment.
 ```bash
 deactivate
 ```

@@ -36,4 +36,7 @@ var/
 coverage_report/
 .pytest_cache/
 
+# Others
 .DS_STORE
+references
+references/*

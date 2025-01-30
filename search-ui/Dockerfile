@@ -16,20 +16,17 @@ COPY . ./
 # Build the application
 RUN npm run build
 
-# Stage 2: Serve the React application with `serve`
-FROM node:16-alpine
+# Stage 2: Serve the React application with Nginx
+FROM nginx:1.26.2-alpine
 
-# Install `serve` globally
-RUN npm install -g serve
+# Remove the default Nginx static assets
+RUN rm -rf /usr/share/nginx/html/*
 
-# Set working directory
-WORKDIR /app
+# Copy the build output to replace the default Nginx static assets
+COPY --from=build /app/build /usr/share/nginx/html
 
-# Copy the build output from the previous stage
-COPY --from=build /app/build ./build
-
-# Expose port 5000 (default port for `serve`)
+# Expose port 80
 EXPOSE 80
 
-# Start the application using `serve`
-CMD ["serve", "-s", "build", "-l", "80"]
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
