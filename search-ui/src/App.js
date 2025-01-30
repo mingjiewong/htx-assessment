@@ -72,7 +72,7 @@
 // export default App;
 
 
-import { SearchProvider, Results, Facet, Paging, Sorting } from "@elastic/react-search-ui";
+import { SearchProvider, SearchBox, Results, Facet, Paging, Sorting } from "@elastic/react-search-ui";
 import ElasticsearchAPIConnector from '@elastic/search-ui-elasticsearch-connector';
 import '@elastic/react-search-ui-views/lib/styles/styles.css';
 
@@ -88,10 +88,10 @@ const configurationOptions = {
   searchQuery: {
     search_fields: {
       generated_text: { type: 'text' },
-      duration: { type: 'numeric' },
-      age: { type: 'exact' },
-      gender: { type: 'exact' },
-      accent: { type: 'exact' },
+      // duration: { type: 'numeric' },
+      // age: { type: 'exact' },
+      // gender: { type: 'exact' },
+      // accent: { type: 'exact' },
     },
     result_fields: {
       generated_text: { snippet: { size: 100, fallback: true } },
@@ -122,28 +122,9 @@ const App = () => (
   <SearchProvider config={configurationOptions}>
     <div className="App" style={styles.container}>
 
-      {/* Search Box for Keyword Search
+      {/* Search Box for Keyword Search */}
       <div style={styles.searchBox}>
-        <SearchBox
-          placeholder="Search generated text..."
-          autocompleteResults={{
-            titleField: "generated_text",
-            sectionTitle: "Suggestions",
-          }}
-          autocompleteSuggestions={false}
-          debounceLength={300}
-        />
-      </div> */}
-
-      {/* Sorting */}
-      <div style={styles.sorting}>
-        <Sorting
-          label="Sort By"
-          sortOptions={[
-            { name: "Duration (Ascending)", value: [{ field: "duration", direction: "asc" }] },
-            { name: "Duration (Descending)", value: [{ field: "duration", direction: "desc" }] }
-          ]}
-        />
+        <SearchBox />
       </div>
 
       {/* Filters (Aligned in Grid) */}
@@ -164,6 +145,17 @@ const App = () => (
             ]}
           />
         </div>
+      </div>
+
+      {/* Sorting */}
+      <div style={styles.sorting}>
+        <Sorting
+          label="Sort By"
+          sortOptions={[
+            { name: "Duration (Ascending)", value: [{ field: "duration", direction: "asc" }] },
+            { name: "Duration (Descending)", value: [{ field: "duration", direction: "desc" }] }
+          ]}
+        />
       </div>
 
       {/* Results */}

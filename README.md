@@ -49,6 +49,10 @@ INDEX_NAME=cv-transcriptions
 
 ## Relative path to the CSV file containing transcription data
 CSV_FILE_PATH=../asr/data/cv-valid-dev.csv
+
+## The base URL of the Elasticsearch cluster that the search-ui application (as a frontend container) connects to.
+### Ensure that this matches the hostname of the Elasticsearch service in Docker Compose (if used).
+REACT_APP_ELASTICSEARCH_HOST=http://elasticsearch-node1:9200
 ```
 
 2. Load the environment variables into your current terminal session.
@@ -64,7 +68,7 @@ set +a
 
 3. Verify that the environment variables have been loaded correctly.
 ```bash
-printenv | grep -E 'DEBUG|MODEL_NAME|LOG_FILE|APP_PORT|APP_NAME|ES_HOST|INDEX_NAME|CSV_FILE_PATH'
+printenv | grep -E 'DEBUG|MODEL_NAME|LOG_FILE|APP_PORT|APP_NAME|ES_HOST|INDEX_NAME|CSV_FILE_PATH|REACT_APP_ELASTICSEARCH_HOST'
 
 # Expected Output
 # DEBUG=False
@@ -75,6 +79,7 @@ printenv | grep -E 'DEBUG|MODEL_NAME|LOG_FILE|APP_PORT|APP_NAME|ES_HOST|INDEX_NA
 # ES_HOST=http://localhost:9200
 # INDEX_NAME=cv-transcriptions
 # CSV_FILE_PATH=../asr/data/cv-valid-dev.csv
+# REACT_APP_ELASTICSEARCH_HOST=http://elasticsearch-node1:9200
 ```
 
 ## Speech Recognition

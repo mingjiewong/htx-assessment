@@ -62,8 +62,10 @@ services:
     depends_on:
       - elasticsearch-node1
       - elasticsearch-node2
+    env_file:
+      - ../.env                                                      # Load environment variables from the .env file
     environment:
-      - REACT_APP_ELASTICSEARCH_HOST=http://elasticsearch-node1:9200 # Set the Elasticsearch host for the frontend application
+      - REACT_APP_ELASTICSEARCH_HOST=${REACT_APP_ELASTICSEARCH_HOST} # Set the Elasticsearch host for the frontend application
     networks:
       - esnet      # Connect the container to the 'esnet' network
 
