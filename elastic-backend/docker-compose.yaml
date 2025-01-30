@@ -3,26 +3,26 @@ version: '7.9.3'
 services:
   elasticsearch-node1:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
-    container_name: elasticsearch-node1                             # Name of the first Elasticsearch container
+    container_name: elasticsearch-node1                                 # Name of the first Elasticsearch container
     environment:
-      - node.name=es-node1                                          # Unique name for the Elasticsearch node
-      - cluster.name=cv-cluster                                     # Name of the Elasticsearch cluster
-      - discovery.seed_hosts=elasticsearch-node2                    # Hostname of other nodes for cluster discovery
-      - cluster.initial_master_nodes=es-node1,elasticsearch-node2   # Initial master nodes for the cluster
-      - bootstrap.memory_lock=false                                 # Disable memory locking (changed from true for development purposes)
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"                                # Set minimum and maximum JVM heap size to 1GB
-      - xpack.security.enabled=false                                # Disable X-Pack security features for simplicity
-      - http.cors.enabled=true
-      - http.cors.allow-origin=*
-      - http.cors.allow-methods=OPTIONS, HEAD, GET, POST, PUT, DELETE
-      - http.cors.allow-headers=*
-      - http.cors.allow-credentials=true
+      - node.name=es-node1                                              # Unique name for the Elasticsearch node
+      - cluster.name=cv-cluster                                         # Name of the Elasticsearch cluster
+      - discovery.seed_hosts=elasticsearch-node2                        # Hostname of other nodes for cluster discovery
+      - cluster.initial_master_nodes=es-node1,elasticsearch-node2       # Initial master nodes for the cluster
+      - bootstrap.memory_lock=false                                     # Disable memory locking (changed from true for development purposes)
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"                                    # Set minimum and maximum JVM heap size to 1GB
+      - xpack.security.enabled=false                                    # Disable X-Pack security features for simplicity
+      - http.cors.enabled=true                                          # Enable CORS for cross-origin requests
+      - http.cors.allow-origin=*                                        # Allow requests from any origin
+      - http.cors.allow-methods=OPTIONS, HEAD, GET, POST, PUT, DELETE   # Allow common HTTP methods in requests
+      - http.cors.allow-headers=*                                       # Allow all headers in HTTP requests
+      - http.cors.allow-credentials=true                                # Allow credentials in requests
     ulimits:
       memlock:
         soft: -1   # Remove soft limit on memory locking
         hard: -1   # Remove hard limit on memory locking
     volumes:
-      - esdata-node1:/usr/share/elasticsearch/data                  # Mount persistent storage for Elasticsearch data
+      - esdata-node1:/usr/share/elasticsearch/data                      # Mount persistent storage for Elasticsearch data
     ports:
       - 9200:9200  # Expose Elasticsearch HTTP port to the host machine
     networks:
@@ -30,42 +30,42 @@ services:
 
   elasticsearch-node2:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
-    container_name: elasticsearch-node2                             # Name of the second Elasticsearch container
+    container_name: elasticsearch-node2                                 # Name of the second Elasticsearch container
     environment:
-      - node.name=elasticsearch-node2                               # Unique name for the Elasticsearch node
-      - cluster.name=cv-cluster                                     # Name of the Elasticsearch cluster (must match node1)
-      - discovery.seed_hosts=elasticsearch-node1                    # Hostname of other nodes for cluster discovery
-      - cluster.initial_master_nodes=es-node1,elasticsearch-node2   # Initial master nodes for the cluster
-      - bootstrap.memory_lock=false                                 # Disable memory locking (changed from true for development purposes)
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"                                # Set minimum and maximum JVM heap size to 1GB
-      - xpack.security.enabled=false                                # Disable X-Pack security features for simplicity
-      - http.cors.enabled=true
-      - http.cors.allow-origin=*
-      - http.cors.allow-methods=OPTIONS, HEAD, GET, POST, PUT, DELETE
-      - http.cors.allow-headers=*
-      - http.cors.allow-credentials=true
+      - node.name=elasticsearch-node2                                   # Unique name for the Elasticsearch node
+      - cluster.name=cv-cluster                                         # Name of the Elasticsearch cluster (must match node1)
+      - discovery.seed_hosts=elasticsearch-node1                        # Hostname of other nodes for cluster discovery
+      - cluster.initial_master_nodes=es-node1,elasticsearch-node2       # Initial master nodes for the cluster
+      - bootstrap.memory_lock=false                                     # Disable memory locking (changed from true for development purposes)
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"                                    # Set minimum and maximum JVM heap size to 1GB
+      - xpack.security.enabled=false                                    # Disable X-Pack security features for simplicity
+      - http.cors.enabled=true                                          # Enable CORS for cross-origin requests
+      - http.cors.allow-origin=*                                        # Allow requests from any origin
+      - http.cors.allow-methods=OPTIONS, HEAD, GET, POST, PUT, DELETE   # Allow common HTTP methods in requests
+      - http.cors.allow-headers=*                                       # Allow all headers in HTTP requests
+      - http.cors.allow-credentials=true                                # Allow credentials in requests
     ulimits:
       memlock:
         soft: -1   # Remove soft limit on memory locking
         hard: -1   # Remove hard limit on memory locking
     volumes:
-      - esdata-node2:/usr/share/elasticsearch/data                  # Mount persistent storage for Elasticsearch data
+      - esdata-node2:/usr/share/elasticsearch/data                      # Mount persistent storage for Elasticsearch data
     networks:
       - esnet      # Connect the container to the 'esnet' network
 
   search-ui:
     build:
-      context: ../search-ui                                         # Path to the frontend application's Dockerfile
-    container_name: search-ui                                       # Name of the Search UI container
+      context: ../search-ui                                             # Path to the frontend application's Dockerfile
+    container_name: search-ui                                           # Name of the Search UI container
     ports:
       - 3000:80  # Expose Search UI on http://localhost:3000/
     depends_on:
       - elasticsearch-node1
       - elasticsearch-node2
     env_file:
-      - ../.env                                                      # Load environment variables from the .env file
+      - ../.env                                                         # Load environment variables from the .env file
     environment:
-      - REACT_APP_ELASTICSEARCH_HOST=${REACT_APP_ELASTICSEARCH_HOST} # Set the Elasticsearch host for the frontend application
+      - REACT_APP_ELASTICSEARCH_HOST=${REACT_APP_ELASTICSEARCH_HOST}    # Set the Elasticsearch host for the frontend application
     networks:
       - esnet      # Connect the container to the 'esnet' network
 
