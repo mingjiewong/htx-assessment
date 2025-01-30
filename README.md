@@ -4,7 +4,71 @@ This repository contains the codebase for the HTX assessment.
 
 ## Table of Contents
 
+- [Full Directory Structure](#full-directory-structure)
+- [Pre-requisites](#pre-requisites)
+- [Speech Recognition](#speech-recognition)
+  - [Relevant Directories and Files](#relevant-directories-and-files)
+  - [Overview](#overview)
+  - [Containerisation](#containerisation)
+  - [Running the Model on Common Voice Locally](#running-the-model-on-common-voice-locally)
+- [Elasticsearch](#elasticsearch)
+  - [Relevant Directories and Files](#relevant-directories-and-files-1)
+  - [Overview](#overview-1)
+  - [Setting Up the Elasticsearch Cluster and UI](#setting-up-the-elasticsearch-cluster-and-ui)
+
 ## Full Directory Structure
+
+The full directory structure of the repository is as follows:
+```
+htx-assessment/
+├── asr/                               # Automated Speech Recognition module
+│   ├── cv-decode.py                   # Script to decode audio files and generate transcriptions
+│   ├── Dockerfile                     # Docker configuration for the ASR module
+│   ├── requirements-cvdecode.txt      # Python dependencies for cv-decode.py
+│   ├── requirements.txt               # General Python dependencies for the ASR module
+│   ├── src/                           # Source code for the ASR module
+│   │   ├── api/                       # API-related code for the ASR service
+│   │   │   ├── __init__.py            # Initializes the API package
+│   │   │   ├── asr_api.py             # Defines API endpoints for speech recognition
+│   │   │   ├── constants.py           # Constants used in the API
+│   │   │   ├── dependencies.py        # Dependency injections for the API
+│   │   │   ├── exceptions.py          # Custom exception handlers for the API
+│   │   │   ├── logging_config.py      # Configures logging for the API
+│   │   │   ├── middleware.py          # Middleware for request processing
+│   │   │   ├── routes.py              # Defines API routes
+│   │   │   └── schemas.py             # Data schemas for request and response validation
+│   │   ├── core/                      # Core functionalities and configurations
+│   │   │   ├── config.py              # Configuration settings for the ASR module
+│   │   │   └── factory.py             # Factory patterns for creating instances
+│   │   ├── speech_recognition/        # Speech recognition logic and models
+│   │   │   ├── __init__.py            # Initializes the speech_recognition package
+│   │   │   ├── asr_logic.py           # Core logic for speech recognition
+│   │   │   └── model.py               # Speech recognition models and utilities
+│   │   └── __init__.py                # Initializes the src package
+│   └── data/                          # Data files used by the ASR module
+│       ├── cv-valid-dev/              # Directory for Common Voice validation dataset
+│       │    ├── .placeholder          # Placeholder file to ensure directory is tracked
+│       │    └── ...                   # Additional data files
+│       └── cv-valid-dev.csv           # CSV file containing metadata for Common Voice validation dataset
+├── elastic-backend/                   # Backend services for Elasticsearch integration
+│   ├── cv-index.py                    # Script to index data into Elasticsearch
+│   ├── docker-compose.yaml            # Docker Compose configuration for Elasticsearch services
+│   ├── logging_config.py              # Logging configuration for Elasticsearch backend
+│   └── requirements.txt               # Python dependencies for Elasticsearch backend
+├── search-ui/                         # Frontend application for search interface
+│   ├── public/                        # Static assets (HTML, images, etc.)
+│   │   └── ...
+│   ├── src/                           # Source code for the React application
+│   │   ├── App.js                     # Main React component
+│   │   ├── index.js                   # Entry point for React application
+│   │   └── ...
+│   ├── Dockerfile                     # Dockerfile for building the search-ui container
+│   ├── package.json                   # Yarn package configuration and dependencies
+│   ├── yarn.lock                      # Yarn lock file for dependency versioning
+│   └── ...
+├── .gitignore                         # Specifies intentionally untracked files to ignore
+└── README.md                          # Project documentation and instructions
+```
 
 ## Pre-requisites
 
@@ -89,43 +153,45 @@ printenv | grep -E 'DEBUG|MODEL_NAME|LOG_FILE|APP_PORT|APP_NAME|ES_HOST|INDEX_NA
 The directories and their files, relevant to this section, are as follows:
 ```
 htx-assessment/
-├── asr/
-│   ├── cv-decode.py
-│   ├── Dockerfile
-│   ├── requirements-cvdecode.txt
-│   ├── requirements.txt
-│   ├── src/
-│   │   ├── api/
-│   │   │   ├── __init__.py
-│   │   │   ├── asr_api.py
-│   │   │   ├── constants.py
-│   │   │   ├── dependencies.py
-│   │   │   ├── exceptions.py
-│   │   │   ├── logging_config.py
-│   │   │   ├── middleware.py
-│   │   │   ├── routes.py
-│   │   │   └── schemas.py
-│   │   ├── core/
-│   │   │   ├── config.py
-│   │   │   └── factory.py
-│   │   ├── speech_recognition/
-│   │   │   ├── __init__.py
-│   │   │   ├── asr_logic.py
-│   │   │   └── model.py
-│   │   └── __init__.py
-│   └── data/
-│       ├── cv-valid-dev/
-│       │    ├── .placeholder
+├── asr/                               # Automated Speech Recognition module
+│   ├── cv-decode.py                   # Script to decode audio files and generate transcriptions
+│   ├── Dockerfile                     # Docker configuration for the ASR module
+│   ├── requirements-cvdecode.txt      # Python dependencies for cv-decode.py
+│   ├── requirements.txt               # General Python dependencies for the ASR module
+│   ├── src/                           # Source code for the ASR module
+│   │   ├── api/                       # API-related code for the ASR service
+│   │   │   ├── __init__.py            # Initializes the API package
+│   │   │   ├── asr_api.py             # Defines API endpoints for speech recognition
+│   │   │   ├── constants.py           # Constants used in the API
+│   │   │   ├── dependencies.py        # Dependency injections for the API
+│   │   │   ├── exceptions.py          # Custom exception handlers for the API
+│   │   │   ├── logging_config.py      # Configures logging for the API
+│   │   │   ├── middleware.py          # Middleware for request processing
+│   │   │   ├── routes.py              # Defines API routes
+│   │   │   └── schemas.py             # Data schemas for request and response validation
+│   │   ├── core/                      # Core functionalities and configurations
+│   │   │   ├── config.py              # Configuration settings for the ASR module
+│   │   │   └── factory.py             # Factory patterns for creating instances
+│   │   ├── speech_recognition/        # Speech recognition logic and models
+│   │   │   ├── __init__.py            # Initializes the speech_recognition package
+│   │   │   ├── asr_logic.py           # Core logic for speech recognition
+│   │   │   └── model.py               # Speech recognition models and utilities
+│   │   └── __init__.py                # Initializes the src package
+│   └── data/                          # Data files used by the ASR module
+│       ├── cv-valid-dev/              # Directory for Common Voice validation dataset
+│       │    ├── .placeholder          # Placeholder file to ensure directory is tracked
 │       │    └── ...
-│       └── cv-valid-dev.csv
-├── .env
-├── .gitignore
-└── README.md
+│       └── cv-valid-dev.csv           # CSV file containing metadata for Common Voice validation dataset
+├── .env                               # Environment variables for the project
+├── .gitignore                         # Specifies intentionally untracked files to ignore
+└── README.md                          # Project documentation and instructions
 ```
 
 ### Overview
 
-The following instructions is to (1) set up the speech recognition tool using Facebook's [wave2vec2](https://huggingface.co/facebook/wav2vec2-large-960h), serve the tool via an API using FastAPI, package the API as a Docker image locally and (2) apply transcription on a set of mp3 files from the [Common Voice](https://www.kaggle.com/datasets/mozillaorg/common-voice) dataset.
+The following instructions are to:
+1. Set up the speech recognition tool using Facebook's [wave2vec2](https://huggingface.co/facebook/wav2vec2-large-960h), serve the tool via an API using FastAPI and package the API as a Docker image locally, and
+2. Apply transcription on a set of mp3 files from the [Common Voice](https://www.kaggle.com/datasets/mozillaorg/common-voice) dataset.
 
 **Note**: _Although this setup assumes the use of Podman, Docker can be used interchangeably here due to Podman's Docker-compatible CLI. However, Podman is recommended as it is free for commercial use and operates without a central daemon. This daemonless architecture enhances security and supports rootless container management. Please note that due to time constraints, the following instructions have not been tested with Docker, but testing and validation are planned in the future._
 
@@ -209,33 +275,48 @@ head -n 5 ./data/cv-valid-dev.csv
 deactivate
 ```
 
-## Elasticsearch Cluster
+## Elasticsearch
 
 ### Relevant Directories and Files
 
 The directories and their files, relevant to this section, are as follows:
 ```
 htx-assessment/
-├── asr/
+├── asr/                       # Automated Speech Recognition module
 │   └── data/
-│       └── cv-valid-dev.csv
-├── elastic-backend/
-│   ├── cv-index.py
-│   ├── docker-compose.yaml
-│   ├── logging_config.py
-│   └── requirements.txt
-├── .env
-├── .gitignore
-└── README.md
+│       └── cv-valid-dev.csv   # CSV file containing valid development data
+├── elastic-backend/           # Backend services for Elasticsearch integration
+│   ├── cv-index.py            # Script to index data into Elasticsearch
+│   ├── docker-compose.yaml    # Docker Compose configuration for Elasticsearch services
+│   ├── logging_config.py      # Logging configuration for Elasticsearch backend
+│   └── requirements.txt       # Python dependencies for Elasticsearch backend
+├── search-ui/                 # Frontend application for search interface
+│   ├── public/                # Static assets (HTML, images, etc.)
+│   │   └── ...
+│   ├── src/                   # Source code for the React application
+│   │   ├── App.js             # Main React component
+│   │   ├── index.js           # Entry point for React application
+│   │   └── ...
+│   ├── Dockerfile             # Dockerfile for building the search-ui container
+│   ├── package.json           # Yarn package configuration and dependencies
+│   ├── yarn.lock              # Yarn lock file for dependency versioning
+│   └── ...
+├── .env                       # Environment variables for the project
+├── .gitignore                 # Specifies intentionally untracked files to ignore
+└── README.md                  # Project documentation and instructions
 ```
 
 ### Overview
 
-The following instructions are to (1) set up an Elasticsearch cluster, (2) create an index in the cluster, and (3) index the transcriptions from the Common Voice dataset into the Elasticsearch cluster.
+The following instructions are to: 
+1. Set up an Elasticsearch cluster,
+2. Create an index in the cluster, 
+3. Create a search UI to query the index from the cluster, and 
+4. Index the transcriptions from the Common Voice dataset into the cluster.
 
 **Note**: _While these instructions are designed for use with Podman, Podman commands and Podman-Compose are assumed throughout, Docker can generally be used as a substitute due to Podman's compatibility as a drop-in replacement for Docker in most standard container operations (and in this context). However, please be aware that due to limited time, these instructions have not been specifically tested with Docker. Users may need to adjust certain commands or configurations to ensure compatibility._
 
-### Setting Up the Elasticsearch Cluster
+### Setting Up the Elasticsearch Cluster and UI
 
 1. Navigate to `elastic-backend` directory (from the root of the repository).
 ```bash
@@ -281,37 +362,4 @@ podman-compose down
 9. [Optional] Deactivate the virtual environment.
 ```bash
 deactivate
-```
-
-## UI in Elasticsearch
-
-### Setting Up the UI for Cluster
-
-1. Set npm to use legacy peer dependencies:
-```bash
-# npm config set legacy-peer-deps true
-# npm config delete legacy-peer-deps
-# npm config list 
-```
-
-2. Create a new React application:
-```bash
-# npx create-react-app search-ui 
-# npm install -g yarn
-yarn create react-app search-ui
-```
-
-3. Navigate to the project directory:
-```bash
-cd search-ui
-yarn remove react react-dom
-yarn add react@17 react-dom@17
-yarn add @elastic/react-search-ui @elastic/search-ui-elasticsearch-connector @elastic/react-search-ui-views
-yarn start
-
-# npm install ajv ajv-keywords --save
-```
-
-```bash
-npm start
 ```
