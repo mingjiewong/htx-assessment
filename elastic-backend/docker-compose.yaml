@@ -13,7 +13,7 @@ services:
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"                                    # Set minimum and maximum JVM heap size to 1GB
       - xpack.security.enabled=false                                    # Disable X-Pack security features for simplicity
       - http.cors.enabled=true                                          # Enable CORS for cross-origin requests
-      - http.cors.allow-origin=*                                        # Allow requests from any origin
+      - http.cors.allow-origin=http://localhost:3000                    # Allow requests from any origin
       - http.cors.allow-methods=OPTIONS, HEAD, GET, POST, PUT, DELETE   # Allow common HTTP methods in requests
       - http.cors.allow-headers=*                                       # Allow all headers in HTTP requests
       - http.cors.allow-credentials=true                                # Allow credentials in requests
@@ -40,7 +40,7 @@ services:
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"                                    # Set minimum and maximum JVM heap size to 1GB
       - xpack.security.enabled=false                                    # Disable X-Pack security features for simplicity
       - http.cors.enabled=true                                          # Enable CORS for cross-origin requests
-      - http.cors.allow-origin=*                                        # Allow requests from any origin
+      - http.cors.allow-origin=http://localhost:3000                    # Allow requests from any origin
       - http.cors.allow-methods=OPTIONS, HEAD, GET, POST, PUT, DELETE   # Allow common HTTP methods in requests
       - http.cors.allow-headers=*                                       # Allow all headers in HTTP requests
       - http.cors.allow-credentials=true                                # Allow credentials in requests
