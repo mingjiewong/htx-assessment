@@ -1,0 +1,49 @@
+# Environment and Python-related files
+.env
+.env-*
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment directories
+env/
+venv-*/
+venv/
+ENV/
+
+# Build-related files and directories
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+sdist/
+parts/
+var/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Unit testing and coverage reports
+.coverage
+coverage_report/
+.pytest_cache/
+
+# Ignore all files in the .terraform directory
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*
+
+# Others
+.DS_STORE
+references
+references/*
+*.pem
