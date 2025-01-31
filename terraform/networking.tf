@@ -42,16 +42,30 @@ resource "aws_subnet" "private_subnet" {
   }
 }
 
-# Allocate an Elastic IP for NAT Gateway
-resource "aws_eip" "nat_eip" {}
+# Allocate Elastic IPs for NAT Gateways
+resource "aws_eip" "nat_eip_1" {}
 
-# Create NAT Gateway in Public Subnet
-resource "aws_nat_gateway" "nat_gateway" {
-  allocation_id = aws_eip.nat_eip.id
+resource "aws_eip" "nat_eip_2" {}
+
+# Create NAT Gateway in first Public Subnet
+resource "aws_nat_gateway" "nat_gateway_1" {
+  allocation_id = aws_eip.nat_eip_1.id
   subnet_id     = aws_subnet.public_subnet[0].id
 
   tags = {
-    Name = "htx-nat-gateway"
+    Name = "htx-nat-gateway-1"
+  }
+
+  depends_on = [aws_internet_gateway.igw]
+}
+
+# Create NAT Gateway in second Public Subnet
+resource "aws_nat_gateway" "nat_gateway_2" {
+  allocation_id = aws_eip.nat_eip_2.id
+  subnet_id     = aws_subnet.public_subnet[1].id
+
+  tags = {
+    Name = "htx-nat-gateway-2"
   }
 
   depends_on = [aws_internet_gateway.igw]
@@ -78,23 +92,42 @@ resource "aws_route_table_association" "public_assoc" {
   route_table_id = aws_route_table.public_rt.id
 }
 
-# Create Route Table for Private Subnets
-resource "aws_route_table" "private_rt" {
+# Create Route Table for the first Private Subnet
+resource "aws_route_table" "private_rt_1" {
   vpc_id = aws_vpc.main_vpc.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gateway.id
+    nat_gateway_id = aws_nat_gateway.nat_gateway_1.id
   }
 
   tags = {
-    Name = "htx-private-rt"
+    Name = "htx-private-rt-1"
   }
 }
 
-# Associate Route Table with Private Subnets
-resource "aws_route_table_association" "private_assoc" {
-  count          = length(aws_subnet.private_subnet)
-  subnet_id      = aws_subnet.private_subnet[count.index].id
-  route_table_id = aws_route_table.private_rt.id
+# Create Route Table for the second Private Subnet
+resource "aws_route_table" "private_rt_2" {
+  vpc_id = aws_vpc.main_vpc.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_gateway_2.id
+  }
+
+  tags = {
+    Name = "htx-private-rt-2"
+  }
+}
+
+# Associate Route Table with the first Private Subnet
+resource "aws_route_table_association" "private_assoc_1" {
+  subnet_id      = aws_subnet.private_subnet[0].id
+  route_table_id = aws_route_table.private_rt_1.id
+}
+
+# Associate Route Table with the second Private Subnet
+resource "aws_route_table_association" "private_assoc_2" {
+  subnet_id      = aws_subnet.private_subnet[1].id
+  route_table_id = aws_route_table.private_rt_2.id
 }
