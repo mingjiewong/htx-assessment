@@ -36,7 +36,14 @@ var/
 coverage_report/
 .pytest_cache/
 
+# Ignore all files in the .terraform directory
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*
+
 # Others
 .DS_STORE
 references
 references/*
+*.pem
