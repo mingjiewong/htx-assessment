@@ -24,7 +24,7 @@ The url for the deployed application is [https://htx.euthyphro.io](https://htx.e
     - [DNS Records for ALB](#dns-records-for-alb)
   - [Setting Up the Infrastructure](#setting-up-the-infrastructure)
   - [Manual Configuration](#manual-configuration)
-- [Improvements](#improvements)
+- [Future Improvements](#future-improvements)
 
 ## Full Directory Structure
 
@@ -652,7 +652,7 @@ python3 cv-index.py
       } 
     ```
 
-## Improvements
+## Future Improvements
 
 Currently, my infrastructure utilizes two separate EC2 instances deployed across different Availability Zones (AZs). Each instance hosts an identical Elasticsearch cluster within the same target group, a strategy designed to distribute load efficiently, boost availability, and enhance fault tolerance.
 
