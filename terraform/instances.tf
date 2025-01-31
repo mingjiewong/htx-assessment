@@ -1,14 +1,15 @@
 # Bastion Host Instance
 resource "aws_instance" "bastion" {
+  count                       = length(aws_subnet.public_subnet)
   ami                         = var.bastion_ami_id
   instance_type               = "t2.micro"
-  subnet_id                   = aws_subnet.public_subnet[0].id
+  subnet_id                   = aws_subnet.public_subnet[count.index].id
   vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
   key_name                    = var.ec2_ssh_key_name
   associate_public_ip_address = true
 
   tags = {
-    Name = "htx-bastion"
+    Name = "htx-bastion-${count.index + 1}"
   }
 
   user_data = <<-EOF
@@ -69,5 +70,8 @@ resource "aws_instance" "app_instance" {
 
                 EOF
 
-  depends_on = [aws_nat_gateway.nat_gateway]
+  depends_on = [
+    aws_nat_gateway.nat_gateway_1,
+    aws_nat_gateway.nat_gateway_2
+  ]
 }
