@@ -21,6 +21,7 @@ This repository contains the codebase for the HTX assessment.
     - [DNS Records for ALB](#dns-records-for-alb)
     - [ACM Validation DNS Records](#acm-validation-dns-records)
   - [Setting Up the Infrastructure](#setting-up-the-infrastructure)
+  - [Manual Configuration](#manual-configuration)
 
 ## Full Directory Structure
 
@@ -58,6 +59,7 @@ htx-assessment/
 │       └── cv-valid-dev.csv           # CSV file containing metadata for Common Voice validation dataset
 ├── elastic-backend/                   # Backend services for Elasticsearch integration
 │   ├── cv-index.py                    # Script to index data into Elasticsearch
+│   ├── docker-compose.podman.yaml     # Podman Compose configuration for Elasticsearch services
 │   ├── docker-compose.yaml            # Docker Compose configuration for Elasticsearch services
 │   ├── logging_config.py              # Logging configuration for Elasticsearch backend
 │   └── requirements.txt               # Python dependencies for Elasticsearch backend
@@ -329,28 +331,29 @@ deactivate
 The directories and their files, relevant to this section, are as follows:
 ```
 htx-assessment/
-├── asr/                       # Automated Speech Recognition module
+├── asr/                               # Automated Speech Recognition module
 │   └── data/
-│       └── cv-valid-dev.csv   # CSV file containing valid development data
-├── elastic-backend/           # Backend services for Elasticsearch integration
-│   ├── cv-index.py            # Script to index data into Elasticsearch
-│   ├── docker-compose.yaml    # Docker Compose configuration for Elasticsearch services
-│   ├── logging_config.py      # Logging configuration for Elasticsearch backend
-│   └── requirements.txt       # Python dependencies for Elasticsearch backend
-├── search-ui/                 # Frontend application for search interface
-│   ├── public/                # Static assets (HTML, images, etc.)
+│       └── cv-valid-dev.csv           # CSV file containing valid development data
+├── elastic-backend/                   # Backend services for Elasticsearch integration
+│   ├── cv-index.py                    # Script to index data into Elasticsearch
+│   ├── docker-compose.podman.yaml     # Podman Compose configuration for Elasticsearch services
+│   ├── docker-compose.yaml            # Docker Compose configuration for Elasticsearch services
+│   ├── logging_config.py              # Logging configuration for Elasticsearch backend
+│   └── requirements.txt               # Python dependencies for Elasticsearch backend
+├── search-ui/                         # Frontend application for search interface
+│   ├── public/                        # Static assets (HTML, images, etc.)
 │   │   └── ...
-│   ├── src/                   # Source code for the React application
-│   │   ├── App.js             # Main React component
-│   │   ├── index.js           # Entry point for React application
+│   ├── src/                           # Source code for the React application
+│   │   ├── App.js                     # Main React component
+│   │   ├── index.js                   # Entry point for React application
 │   │   └── ...
-│   ├── Dockerfile             # Dockerfile for building the search-ui container
-│   ├── package.json           # Yarn package configuration and dependencies
-│   ├── yarn.lock              # Yarn lock file for dependency versioning
+│   ├── Dockerfile                     # Dockerfile for building the search-ui container
+│   ├── package.json                   # Yarn package configuration and dependencies
+│   ├── yarn.lock                      # Yarn lock file for dependency versioning
 │   └── ...
-├── .env                       # Environment variables for the project
-├── .gitignore                 # Specifies intentionally untracked files to ignore
-└── README.md                  # Project documentation and instructions
+├── .env                               # Environment variables for the project
+├── .gitignore                         # Specifies intentionally untracked files to ignore
+└── README.md                          # Project documentation and instructions
 ```
 
 ### Overview
@@ -362,6 +365,8 @@ The following instructions are to:
 4. Index the transcriptions from the Common Voice dataset into the cluster.
 
 **Note**: _While these instructions are designed for use with Podman, Podman commands and Podman-Compose are assumed throughout, Docker can generally be used as a substitute due to Podman's compatibility as a drop-in replacement for Docker in most standard container operations (and in this context). However, please be aware that due to limited time, these instructions have not been specifically tested with Docker. Users may need to adjust certain commands or configurations to ensure compatibility._
+
+**Further Notes**: _There are 2 docker-compose files in the `elastic-backend` directory: `docker-compose.yaml` and `docker-compose.podman.yaml`. The file `docker-compose.podman.yaml` is specifically for Podman, while `docker-compose.yaml` is used for Docker._ 
 
 ### Setting Up the Elasticsearch Cluster and UI
 
@@ -381,9 +386,9 @@ source venv-es/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Start Elasticsearch Cluster.
+4. Start Elasticsearch Cluster. 
 ```bash
-podman-compose up -d --build
+podman-compose -f docker-compose.podman.yaml up -d --build
 ```
 
 5. To verify the health of the Elasticsearch cluster, run the following `curl` command:
@@ -415,7 +420,7 @@ deactivate
 
 ### Overview
 
-The following instructions are to:
+The following instructions use the Terraform scripts in the `terraform` directory to:
 1. Set up a VPC, Subnets and Security Groups, 
 2. Deploy the search UI application to EC2 instances in AWS,
 2. Set up a Bastion host for SSH access to the EC2 instances, and
@@ -516,3 +521,6 @@ ssh -i "key.pem" ubuntu@XX.XX.XXX.XX
 ```bash
 terraform destroy -auto-approve -var="region=$AWS_DEFAULT_REGION" -var="certificate_arn=$CERTIFICATE_ARN" -var="ec2_ssh_key_name=$EC2_SSH_KEY_NAME" -var="hostname=$HOSTNAME" -var="personal_ip=$PERSONAL_IP"
 ```
+
+### Manual Configuration
+
