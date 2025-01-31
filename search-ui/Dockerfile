@@ -1,9 +1,5 @@
 # Stage 1: Build the React application
-<<<<<<< HEAD
 FROM docker.io/node:16-alpine AS build
-=======
-FROM node:16-alpine AS build
->>>>>>> 16dbeb2cc862465da6ee1afce7f670c9572bc4c4
 
 # Set working directory
 WORKDIR /app
@@ -21,11 +17,7 @@ COPY . ./
 RUN npm run build
 
 # Stage 2: Serve the React application with Nginx
-<<<<<<< HEAD
 FROM docker.io/nginx:1.26.2-alpine
-=======
-FROM nginx:1.26.2-alpine
->>>>>>> 16dbeb2cc862465da6ee1afce7f670c9572bc4c4
 
 # Remove the default Nginx static assets
 RUN rm -rf /usr/share/nginx/html/*
