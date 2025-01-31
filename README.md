@@ -2,6 +2,8 @@
 
 This repository contains the codebase for the HTX assessment. 
 
+The url for the deployed application is [https://htx.euthyphro.io](https://htx.euthyphro.io).
+
 ## Table of Contents
 
 - [Full Directory Structure](#full-directory-structure)
@@ -22,6 +24,7 @@ This repository contains the codebase for the HTX assessment.
     - [DNS Records for ALB](#dns-records-for-alb)
   - [Setting Up the Infrastructure](#setting-up-the-infrastructure)
   - [Manual Configuration](#manual-configuration)
+- [Improvements](#improvements)
 
 ## Full Directory Structure
 
@@ -505,7 +508,7 @@ terraform state list
 terraform output -json
 ```
 
-10. To check if the set up is working, navigate to the custom domain (e.g., `https://htx.your-domain.com`) in a web browser. The message from Nginx should be displayed.
+10. To verify the setup, open a web browser and navigate to your custom domain (e.g., `https://htx.your-domain.com`). You should see a message from the running Nginx container.
 
 11. [Optional] SSH into the EC2 instance via Bastion host.
 ```bash
@@ -526,3 +529,141 @@ terraform destroy -auto-approve -var="region=$AWS_DEFAULT_REGION" -var="certific
 
 ### Manual Configuration
 
+After the infrastructure has been set up, the following manual configurations are required for each EC2 instance:
+
+1. SSH into an EC2 instance via Bastion host.
+```bash
+# Copy the SSH key to the Bastion Host (same key used for the private EC2 instance and Bastion Host)
+scp -i ./path/to/key.pem ./path/to/key.pem ec2-user@ec2-XXX-XXX-XXX-XXX.aws-region.compute.amazonaws.com:/home/ec2-user/
+
+# SSH into the Bastion Host
+ssh -i "key.pem" ec2-user@ec2-XXX-XXX-XXX-XXX.aws-region.compute.amazonaws.com
+
+# From the Bastion Host, SSH into the private EC2 instance
+ssh -i "key.pem" ubuntu@XX.XX.XXX.XX
+```
+
+2. Clone the project repository.
+```bash
+git clone https://github.com/mingjiewong/htx-assessment.git
+```
+
+3. Shut down the running Nginx container.
+```bash
+# List all running containers
+sudo docker ps
+
+# Stop and remove the container
+sudo docker stop XXXXXXX
+sudo docker rm XXXXXXX
+```
+
+4. Navigate to the `htx-assessment/elastic-backend` directory of the project repository.
+```bash
+cd htx-assessment/elastic-backend
+```
+
+5. Install the required dependencies.
+```bash
+sudo pip3 install -r requirements.txt
+```
+
+6. Load the following environment variables for indexing the data into the Elasticsearch cluster later.
+```bash
+echo -e "ES_HOST=http://localhost:9200\nINDEX_NAME=cv-transcriptions\nCSV_FILE_PATH=../asr/data/cv-valid-dev.csv" > ../.env
+export $(grep -v '^#' ../.env | xargs)
+```
+
+7. Increase the `max_map_count` for the Elasticsearch cluster. This is necessary because Elasticsearch needs a higher `vm.max_map_count` setting (which determines the maximum number of memory-mapped areas a process can have) than the default value (e.g., `65530`) on many Linux systems, including Ubuntu, CentOS, RHEL, and Debian.
+```bash
+# Check the current max_map_count
+sysctl vm.max_map_count
+
+# Increase the max_map_count
+sudo sysctl -w vm.max_map_count=262144
+
+# Persist the change
+echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+```
+
+8. Since the frontend is served over HTTPS, accessing Elasticsearch over HTTP can cause browser blocks due to Mixed Content Issues. To resolve this, set the host to a relative path `/api/` in the `App.js` file. This allows the frontend to connect to the backend API using the same domain and protocol, leveraging Nginx to proxy API requests and avoiding mixed content issues.
+```bash
+vim ../search-ui/src/App.js
+
+# Change the line in App.js from:
+# host: process.env.REACT_APP_ELASTICSEARCH_HOST || 'http://localhost:9200',
+# to:
+# host: '/api/',
+```
+
+9. Start Elasticsearch Cluster. 
+```bash
+sudo docker-compose up -d --build
+```
+
+10. Check the health of the Elasticsearch cluster.
+```bash
+curl -X GET "http://localhost:9200/_cluster/health?pretty"
+```
+
+11. Create the `cv-transcriptions` index in the Elasticsearch cluster and index the speech recongition data.
+```bash
+python3 cv-index.py
+```
+
+12. Update the nginx configuration in the search UI application to address the Mixed Content Issues.
+
+    Execute the following commands in the container of the `search-ui` application.
+    ```bash
+    # Access shell in the container
+    sudo docker exec -it search-ui sh
+
+    # Edit the nginx configuration file
+    vi /etc/nginx/conf.d/default.conf
+
+    # Add the following location block to the nginx configuration file
+
+    # Test the nginx configuration
+    nginx -t
+
+    # Reload the nginx configuration
+    nginx -s reload
+    ```
+
+    Update the nginx configuration file to include the following location block.
+    ```bash
+      location /api/ {                                  
+          proxy_pass http://elasticsearch-node1:9200/;
+          proxy_set_header Host $host;                
+          proxy_set_header X-Real-IP $remote_addr;    
+                                                      
+          # CORS Headers                              
+          add_header 'Access-Control-Allow-Origin' '*' always;
+          add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+          add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization' always;
+                                                                                      
+          # Handle preflight OPTIONS requests                                            
+          if ($request_method = 'OPTIONS') {                                             
+              add_header 'Access-Control-Max-Age' 1728000;                               
+              add_header 'Content-Type' 'text/plain charset=UTF-8';                      
+              add_header 'Content-Length' 0;                                             
+              return 204;                                                       
+          }                                                                              
+      } 
+    ```
+
+## Improvements
+
+Currently, my infrastructure utilizes two separate EC2 instances deployed across different Availability Zones (AZs). Each instance hosts an identical Elasticsearch cluster within the same target group, a strategy designed to distribute load efficiently, boost availability, and enhance fault tolerance.
+
+This configuration operates under the assumption that the Elasticsearch index remains static, with no anticipated future updates or the necessity for synchronization between the two clusters. By allowing each cluster to function independently, I can eliminate the complexities associated with data synchronization, ensuring straightforward maintenance and operation.
+
+However, this approach presents significant challenges if updates to the Elasticsearch index become necessary. Managing two separate clusters increases the risk of data inconsistency, especially as the dataset involves common voice data generated by automatic speech models. Given the rapid advancements and frequent updates expected in these models, adding new features or modifying existing ones could complicate the maintenance of identical clusters, undermining the benefits of our current setup.
+
+To address these challenges, I propose transitioning to Amazon OpenSearch Service (the successor to Amazon Elasticsearch Service) on AWS. Unlike my current setup, Amazon OpenSearch Service inherently manages data replication and ensures high availability by allowing the Elasticsearch cluster to span multiple AZs. This managed service simplifies cluster management, automatically handles data replication across AZs, and maintains data accessibility even if one AZ encounters issues, thereby preserving the integrity and availability of our Elasticsearch deployment.
+
+Furthermore, to accommodate the need for dynamic feature additions driven by continuous improvements in automatic speech models, I recommend integrating MongoDB into our data architecture. MongoDB offers a higher level of flexibility with its document-based data structure, facilitating the easy addition and modification of data fields without the need for extensive schema migrations. This adaptability is crucial for supporting the evolving requirements of speech models.
+
+To ensure seamless synchronization between MongoDB and Elasticsearch, we can utilize tools like the MongoDB Connector for Elasticsearch. This integration ensures that search indices remain up-to-date with the primary data store, maintaining consistency across our databases. Additionally, MongoDB's native search capabilities, such as MongoDB Atlas Search, leverage Lucene—the same underlying technology as Elasticsearch—and support semantic search functionalities, enabling effective vectorization of transcripts.
+
+In summary, while my current deployment of two separate EC2 instances across different AZs effectively enhances availability and fault tolerance for a static Elasticsearch index, the anticipated dynamic nature of our dataset requires us to think of a more flexible approach. Transitioning to Amazon OpenSearch Service can ensure a level of robustness in data replication and high availability, while integrating MongoDB can provide us the necessary flexibility to support rapid advancements and feature enhancements in our automatic speech models. Combining both of them together will allow us to leverage their strengths to ensure a scalable, reliable, and adaptable data infrastructure on AWS.
