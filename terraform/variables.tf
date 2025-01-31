@@ -20,7 +20,7 @@ variable "ami_id" {
 variable "ec2_instance_type" {
   description = "The EC2 instance type"
   type        = string
-  default     = "t3.medium"
+  default     = "t3.large"
 }
 
 # SSH key pair name for EC2 instance access
