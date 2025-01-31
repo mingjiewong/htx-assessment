@@ -15,6 +15,12 @@ This repository contains the codebase for the HTX assessment.
   - [Relevant Directories and Files](#relevant-directories-and-files-1)
   - [Overview](#overview-1)
   - [Setting Up the Elasticsearch Cluster and UI](#setting-up-the-elasticsearch-cluster-and-ui)
+- [AWS Deployment](#aws-deployment)
+  - [Overview](#overview-2)
+  - [DNS Configuration for Custom Domain with CloudFlare](#dns-configuration-for-custom-domain-with-cloudflare)
+    - [DNS Records for ALB](#dns-records-for-alb)
+    - [ACM Validation DNS Records](#acm-validation-dns-records)
+  - [Setting Up the Infrastructure](#setting-up-the-infrastructure)
 
 ## Full Directory Structure
 
@@ -66,6 +72,15 @@ htx-assessment/
 │   ├── package.json                   # Yarn package configuration and dependencies
 │   ├── yarn.lock                      # Yarn lock file for dependency versioning
 │   └── ...
+├── terraform/                         # Infrastructure as Code for AWS deployment
+│   ├── instances.tf                   # Configuration for EC2 instances
+│   ├── load_balancer.tf               # Configuration for ALB
+│   ├── main.tf                        # Main Terraform configuration file
+│   ├── networking.tf                  # Configuration for VPC, Subnets and Security Groups
+│   ├── providers.tf                   # Configuration for Terraform providers
+│   ├── security_groups.tf             # Configuration for Security Groups
+│   ├── variables.tf                   # Configuration for Terraform variables
+│   └── volumes.tf                     # Configuration for EBS volumes
 ├── .gitignore                         # Specifies intentionally untracked files to ignore
 └── README.md                          # Project documentation and instructions
 ```
@@ -74,7 +89,7 @@ htx-assessment/
 
 The following instructions are designed for use with Python 3.10.
 
-Before starting, ensure that the necessary environment variables are properly configured. This is neccessary for (1) [Speech Recognition](#speech-recognition), (2) [Elasticsearch Cluster](#elasticsearch-cluster) and (3) [UI In Elasticsearch](#ui-in-elasticsearch).
+Before starting, ensure that the necessary environment variables are properly configured. This is neccessary for (1) [Speech Recognition](#speech-recognition), (2) [Elasticsearch](#elasticsearch) and (3) [AWS Deployment](#aws-deployment).
 
 1. Set up the following environment variables in a `.env` file located at the root of the repository:
 ```bash
@@ -117,6 +132,31 @@ CSV_FILE_PATH=../asr/data/cv-valid-dev.csv
 ## The base URL of the Elasticsearch cluster that the search-ui application (as a frontend container) connects to.
 ### Ensure that this matches the hostname of the Elasticsearch service in Docker Compose (if used).
 REACT_APP_ELASTICSEARCH_HOST=http://elasticsearch-node1:9200
+
+# ============================
+# Public Cloud Deployment Configuration
+# ============================
+
+## AWS Access Key ID
+AWS_ACCESS_KEY_ID=aws-access-key-id             # Replace with your AWS Access Key ID
+
+## AWS Secret Access Key
+AWS_SECRET_ACCESS_KEY=aws-secret-access-key     # Replace with your AWS Secret Access Key
+
+## AWS Region
+AWS_REGION=aws-region                           # Replace with your AWS Region
+
+## Certificate ARN for HTTPS
+CERTIFICATE_ARN=certificate-arn                 # Replace with your SSL Certificate ARN
+
+## EC2 SSH Key Pair Name
+EC2_SSH_KEY_NAME=ec2-ssh-key-name               # Replace with your EC2 SSH Key Pair Name (i.e., name of the key pair in AWS EC2)
+
+## Hostname for the search-ui application
+HOSTNAME=hostname                               # Replace with the hostname for the search-ui application
+
+## My IP Address for SSH access to the EC2 instance
+PERSONAL_IP=person-ip-address                   # Replace with your IP Address
 ```
 
 2. Load the environment variables into your current terminal session.
@@ -132,7 +172,7 @@ set +a
 
 3. Verify that the environment variables have been loaded correctly.
 ```bash
-printenv | grep -E 'DEBUG|MODEL_NAME|LOG_FILE|APP_PORT|APP_NAME|ES_HOST|INDEX_NAME|CSV_FILE_PATH|REACT_APP_ELASTICSEARCH_HOST'
+printenv | grep -E 'DEBUG|MODEL_NAME|LOG_FILE|APP_PORT|APP_NAME|ES_HOST|INDEX_NAME|CSV_FILE_PATH|REACT_APP_ELASTICSEARCH_HOST|AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_REGION|CERTIFICATE_ARN|EC2_SSH_KEY_NAME|HOSTNAME|PERSONAL_IP'
 
 # Expected Output
 # DEBUG=False
@@ -362,4 +402,110 @@ podman-compose down
 9. [Optional] Deactivate the virtual environment.
 ```bash
 deactivate
+```
+
+## AWS Deployment
+
+### Overview
+
+The following instructions are to:
+1. Set up a VPC, Subnets and Security Groups, 
+2. Deploy the search UI application to EC2 instances in AWS,
+2. Set up a Bastion host for SSH access to the EC2 instances, and
+3. Set up an Application Load Balancer (ALB).
+
+**Note**: _Requires an AWS account with the necessary permissions to create and manage resources. Proceed to guide [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) on how to create an AWS Access Key ID and Secret Access Key to gain that necessary permissions._
+
+**Further Notes**:
+- _The following instructions assume the use of Terraform 1.9.8._
+- _The deployment requires a valid SSL certificate ARN, an EC2 SSH Key Pair Name and a custom domain._
+- _A valid SSL certificate ARN can be obtained from the AWS Certificate Manager or another certificate provider (e.g., CloudFlare etc.) Instructions [here](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-specify-certificate-for-custom-domain-name.html)._
+- _A valid EC2 SSH Key Pair Name can be created in the AWS EC2 console. Instructions [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html). The `.pem` file should be stored in the root of the repository._
+- _The custom domain should be set up in Route 53 or another DNS provider (e.g., CloudFlare etc.). Instructions [here](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register.html)._
+
+### DNS Configuration for Custom Domain with CloudFlare
+
+These instructions are for users who use popular non-AWS DNS providers, such as Cloudflare.
+
+#### DNS Records for ALB
+
+If CloudFlare is your primary DNS provider, all DNS queries for your custom domain are handled by CloudFlare's nameservers. In this case, the following DNS records should be manually set up for both the root domain and the subdomain (e.g., `your-domain.com` and `htx.your-domain.com` respectively etc.):
+
+|**Type**| **Name**        | **Target**                                              | **Proxy Status**     |
+|--------|-----------------|---------------------------------------------------------|----------------------|
+|CNAME   | @ (root)        | your-alb-1234567890.aws-region.elb.amazonaws.com        | Proxied              |
+|CNAME   | htx             | your-alb-1234567890.aws-region.elb.amazonaws.com        | Proxied              |
+
+#### ACM Validation DNS Records
+
+If you are using the AWS Certificate Manager (ACM) to obtain an SSL certificate for your custom domain, you will need to validate the certificate. After obtaining the certificate, ACM will provide you with one or more CNAME records for each domain/subdomain you requested to add to your DNS provider. Each of these records is used to validate that you own the domain/subdomain. 
+
+You can validate the certificate by adding each CNAME validation record provided by ACM in CloudFlare (`_your-acm-id` is from its CNAME name and `_your-acm-validation-code.your-acm-region.acm.aws` is from its CNAME value):
+
+|**Type**| **Name**        | **Target**                                              | **Proxy Status**     |
+|--------|-----------------|---------------------------------------------------------|----------------------|
+|CNAME   | _your-acm-id    | _your-acm-validation-code.your-acm-region.acm.aws       | DNS Only             |
+
+### Setting Up the Infrastructure
+
+1. Navigate to the `terraform` directory.
+```bash
+cd terraform
+```
+
+2. Initialize the Terraform configuration.
+```bash
+terraform init
+```
+
+3. Check the version of Terraform and the installed providers in configuration. 
+```bash
+terraform version
+```
+
+4. Format the code.
+```bash
+terraform fmt
+```
+
+5. Plan the changes.
+```bash
+terraform plan -var="region=$AWS_DEFAULT_REGION" -var="certificate_arn=$CERTIFICATE_ARN" -var="ec2_ssh_key_name=$EC2_SSH_KEY_NAME" -var="hostname=$HOSTNAME" -var="personal_ip=$PERSONAL_IP"
+```
+
+6. Apply the changes.
+```bash
+terraform apply -auto-approve -var="region=$AWS_DEFAULT_REGION" -var="certificate_arn=$CERTIFICATE_ARN" -var="ec2_ssh_key_name=$EC2_SSH_KEY_NAME" -var="hostname=$HOSTNAME" -var="personal_ip=$PERSONAL_IP"
+```
+
+7. View the applied configuration in the Terraform state.
+```bash
+terraform show
+```
+
+8. List all of the items in Terraform's managed state.
+```bash
+terraform state list
+```
+
+9. Print the outputs in a machine-readable format.
+```bash
+terraform output -json
+```
+
+10. [Optional] SSH into the EC2 instance via Bastion host.
+```bash
+# Copy the SSH key to the Bastion Host (same key used for the private EC2 instance and Bastion Host)
+scp -i ./path/to/key.pem ./path/to/key.pem ec2-user@ec2-XXX-XXX-XXX-XXX.aws-region.compute.amazonaws.com:/home/ec2-user/
+
+# SSH into the Bastion Host
+ssh -i "key.pem" ec2-user@ec2-XXX-XXX-XXX-XXX.aws-region.compute.amazonaws.com
+
+# From the Bastion Host, SSH into the private EC2 instance
+ssh -i "key.pem" ubuntu@XX.XX.XXX.XX
+```
+
+11. [Optional] Destroy the infrastructure.
+```bash
+terraform destroy -auto-approve -var="region=$AWS_DEFAULT_REGION" -var="certificate_arn=$CERTIFICATE_ARN" -var="ec2_ssh_key_name=$EC2_SSH_KEY_NAME" -var="hostname=$HOSTNAME" -var="personal_ip=$PERSONAL_IP"
 ```
