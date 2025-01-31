@@ -37,13 +37,35 @@ resource "aws_instance" "app_instance" {
 
                 # Update and install necessary packages
                 sudo apt-get update -y
-                sudo apt-get install -y podman git python3-pip
+                sudo apt-get install -y git python3-pip
 
-                # Install podman-compose
-                sudo pip3 install podman-compose
+                ## From https://docs.docker.com/engine/install/ubuntu/#install-from-a-package
+                # Add Docker's official GPG key:
+                sudo apt-get update -y
+                sudo apt-get install -y ca-certificates curl
+                sudo install -m 0755 -d /etc/apt/keyrings
+                sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+                sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-                # Pull and run Nginx container using Podman on port 3000
-                sudo podman run -d --name nginx-server -p 3000:80 docker.io/library/nginx:latest
+                # Add the repository to Apt sources:
+                echo \
+                  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+                  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+                  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+                sudo apt-get update -y
+
+                # Install Docker
+                sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+                # Install Docker-Compose
+                sudo apt install -y docker-compose
+                ##
+
+                # Pull and run Nginx container using Docker on port 3000
+                sudo docker run -d --name nginx-server -p 3000:80 docker.io/library/nginx:latest
+
+                # Clone the repository
+                git clone https://github.com/mingjiewong/htx-assessment.git
 
                 EOF
 
