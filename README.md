@@ -184,6 +184,13 @@ printenv | grep -E 'DEBUG|MODEL_NAME|LOG_FILE|APP_PORT|APP_NAME|ES_HOST|INDEX_NA
 # INDEX_NAME=cv-transcriptions
 # CSV_FILE_PATH=../asr/data/cv-valid-dev.csv
 # REACT_APP_ELASTICSEARCH_HOST=http://elasticsearch-node1:9200
+# AWS_ACCESS_KEY_ID=aws-access-key-id
+# AWS_SECRET_ACCESS_KEY=aws-secret-access-key
+# AWS_REGION=aws-region
+# CERTIFICATE_ARN=certificate-arn
+# EC2_SSH_KEY_NAME=ec2-ssh-key-name
+# HOSTNAME=hostname
+# PERSONAL_IP=person-ip-address
 ```
 
 ## Speech Recognition
