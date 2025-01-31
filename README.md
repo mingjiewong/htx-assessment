@@ -18,8 +18,8 @@ This repository contains the codebase for the HTX assessment.
 - [AWS Deployment](#aws-deployment)
   - [Overview](#overview-2)
   - [DNS Configuration for Custom Domain with CloudFlare](#dns-configuration-for-custom-domain-with-cloudflare)
-    - [DNS Records for ALB](#dns-records-for-alb)
     - [ACM Validation DNS Records](#acm-validation-dns-records)
+    - [DNS Records for ALB](#dns-records-for-alb)
   - [Setting Up the Infrastructure](#setting-up-the-infrastructure)
   - [Manual Configuration](#manual-configuration)
 
@@ -439,15 +439,6 @@ The following instructions use the Terraform scripts in the `terraform` director
 
 These instructions are for users who use popular non-AWS DNS providers, such as Cloudflare.
 
-#### DNS Records for ALB
-
-If CloudFlare is your primary DNS provider, all DNS queries for your custom domain are handled by CloudFlare's nameservers. In this case, the following DNS records should be manually set up for both the root domain and the subdomain (e.g., `your-domain.com` and `htx.your-domain.com` respectively etc.):
-
-|**Type**| **Name**        | **Target**                                              | **Proxy Status**     |
-|--------|-----------------|---------------------------------------------------------|----------------------|
-|CNAME   | @ (root)        | your-alb-1234567890.aws-region.elb.amazonaws.com        | Proxied              |
-|CNAME   | htx             | your-alb-1234567890.aws-region.elb.amazonaws.com        | Proxied              |
-
 #### ACM Validation DNS Records
 
 If you are using the AWS Certificate Manager (ACM) to obtain an SSL certificate for your custom domain, you will need to validate the certificate. After obtaining the certificate, ACM will provide you with one or more CNAME records for each domain/subdomain you requested to add to your DNS provider. Each of these records is used to validate that you own the domain/subdomain. 
@@ -457,6 +448,15 @@ You can validate the certificate by adding each CNAME validation record provided
 |**Type**| **Name**        | **Target**                                              | **Proxy Status**     |
 |--------|-----------------|---------------------------------------------------------|----------------------|
 |CNAME   | _your-acm-id    | _your-acm-validation-code.your-acm-region.acm.aws       | DNS Only             |
+
+#### DNS Records for ALB
+
+If CloudFlare is your primary DNS provider, all DNS queries for your custom domain are handled by CloudFlare's nameservers. In this case, the following DNS records should be manually set up for both the root domain and the subdomain (e.g., `your-domain.com` and `htx.your-domain.com` respectively etc.) after the ALB is provisioned via Terraform:
+
+|**Type**| **Name**        | **Target**                                              | **Proxy Status**     |
+|--------|-----------------|---------------------------------------------------------|----------------------|
+|CNAME   | @ (root)        | your-alb-1234567890.aws-region.elb.amazonaws.com        | Proxied              |
+|CNAME   | htx             | your-alb-1234567890.aws-region.elb.amazonaws.com        | Proxied              |
 
 ### Setting Up the Infrastructure
 
@@ -505,7 +505,9 @@ terraform state list
 terraform output -json
 ```
 
-10. [Optional] SSH into the EC2 instance via Bastion host.
+10. To check if the set up is working, navigate to the custom domain (e.g., `https://htx.your-domain.com`) in a web browser. The message from Nginx should be displayed.
+
+11. [Optional] SSH into the EC2 instance via Bastion host.
 ```bash
 # Copy the SSH key to the Bastion Host (same key used for the private EC2 instance and Bastion Host)
 scp -i ./path/to/key.pem ./path/to/key.pem ec2-user@ec2-XXX-XXX-XXX-XXX.aws-region.compute.amazonaws.com:/home/ec2-user/
@@ -517,7 +519,7 @@ ssh -i "key.pem" ec2-user@ec2-XXX-XXX-XXX-XXX.aws-region.compute.amazonaws.com
 ssh -i "key.pem" ubuntu@XX.XX.XXX.XX
 ```
 
-11. [Optional] Destroy the infrastructure.
+12. [Optional] Destroy the infrastructure.
 ```bash
 terraform destroy -auto-approve -var="region=$AWS_DEFAULT_REGION" -var="certificate_arn=$CERTIFICATE_ARN" -var="ec2_ssh_key_name=$EC2_SSH_KEY_NAME" -var="hostname=$HOSTNAME" -var="personal_ip=$PERSONAL_IP"
 ```
