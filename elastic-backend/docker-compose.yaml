@@ -1,4 +1,4 @@
-version: '7.9.3'
+version: '3.9'
 
 services:
   elasticsearch-node1:
@@ -19,14 +19,14 @@ services:
       - http.cors.allow-credentials=true                                # Allow credentials in requests
     ulimits:
       memlock:
-        soft: -1   # Remove soft limit on memory locking
-        hard: -1   # Remove hard limit on memory locking
+        soft: -1                                                        # Remove soft limit on memory locking
+        hard: -1                                                        # Remove hard limit on memory locking
     volumes:
       - esdata-node1:/usr/share/elasticsearch/data                      # Mount persistent storage for Elasticsearch data
     ports:
-      - 9200:9200  # Expose Elasticsearch HTTP port to the host machine
+      - 9200:9200                                                       # Expose Elasticsearch HTTP port to the host machine
     networks:
-      - esnet      # Connect the container to the 'esnet' network
+      esnet: {}                                                         # Connect the container to the 'esnet' network
 
   elasticsearch-node2:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
@@ -46,35 +46,34 @@ services:
       - http.cors.allow-credentials=true                                # Allow credentials in requests
     ulimits:
       memlock:
-        soft: -1   # Remove soft limit on memory locking
-        hard: -1   # Remove hard limit on memory locking
+        soft: -1                                                        # Remove soft limit on memory locking
+        hard: -1                                                        # Remove hard limit on memory locking
     volumes:
       - esdata-node2:/usr/share/elasticsearch/data                      # Mount persistent storage for Elasticsearch data
     networks:
-      - esnet      # Connect the container to the 'esnet' network
+      esnet: {}                                                         # Connect the container to the 'esnet' network
 
   search-ui:
     build:
       context: ../search-ui                                             # Path to the frontend application's Dockerfile
     container_name: search-ui                                           # Name of the Search UI container
     ports:
-      - 3000:80  # Expose Search UI on http://localhost:3000/
+      - 3000:80                                                         # Expose Search UI on http://localhost:3000/
     depends_on:
       - elasticsearch-node1
       - elasticsearch-node2
     env_file:
       - ../.env                                                         # Load environment variables from the .env file
-    environment:
-      - REACT_APP_ELASTICSEARCH_HOST=${REACT_APP_ELASTICSEARCH_HOST}    # Set the Elasticsearch host for the frontend application
     networks:
-      - esnet      # Connect the container to the 'esnet' network
+      esnet: {}                                                         # Connect the container to the 'esnet' network
 
 volumes:
   esdata-node1:
-    driver: local  # Use the local Docker volume driver for node1 data persistence
+    driver: local                                                       # Use the local Docker volume driver for node1 data persistence
   esdata-node2:
-    driver: local  # Use the local Docker volume driver for node2 data persistence
+    driver: local                                                       # Use the local Docker volume driver for node2 data persistence
 
 networks:
   esnet:
-    driver: bridge # Define a bridge network named 'esnet' for Elasticsearch nodes to communicate
+    name: esnet                                                         # Name the network 'esnet'
+    driver: bridge                                                      # Define a bridge network named 'esnet' for Elasticsearch nodes to communicate
