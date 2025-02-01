@@ -293,7 +293,7 @@ podman run -d --name ${APP_NAME} -p ${APP_PORT}:${APP_PORT} ${APP_NAME}
     {
         "request_id": "unique-request-id",
         "transcription": "TRANSCRIBED-TEXT",
-        "duration": "4.464"
+        "duration": "4.5"
     }
     ```
 
