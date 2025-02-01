@@ -61,6 +61,8 @@ htx-assessment/
 │       │    ├── .placeholder          # Placeholder file to ensure directory is tracked
 │       │    └── ...                   # Additional data files
 │       └── cv-valid-dev.csv           # CSV file containing metadata for Common Voice validation dataset
+├── deployment-design/                 # Deployment design documentation
+│   └── design.pdf                     # Deployment design document
 ├── elastic-backend/                   # Backend services for Elasticsearch integration
 │   ├── cv-index.py                    # Script to index data into Elasticsearch
 │   ├── docker-compose.podman.yaml     # Podman Compose configuration for Elasticsearch services
@@ -88,6 +90,7 @@ htx-assessment/
 │   ├── variables.tf                   # Configuration for Terraform variables
 │   └── volumes.tf                     # Configuration for EBS volumes
 ├── .gitignore                         # Specifies intentionally untracked files to ignore
+├── essay.pdf                          # Essay on the model monitoring pipeline design
 └── README.md                          # Project documentation and instructions
 ```
 
@@ -294,7 +297,7 @@ podman run -d --name ${APP_NAME} -p ${APP_PORT}:${APP_PORT} ${APP_NAME}
     }
     ```
 
-    The `transcription` field will contain the transcribed text from the audio file, and the `duration` field will contain the duration of the audio file in seconds. The `request_id` field will contain a unique identifier for the request, used for tracing and debugging purposes.
+    The `transcription` field [string type] will contain the transcribed text from the audio file, and the `duration` field [string type] will contain the duration of the audio file in seconds. The `request_id` field [string field] will contain a unique identifier for the request, used for tracing and debugging purposes.
 
 ### Running the Model on Common Voice Locally
 
