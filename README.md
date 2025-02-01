@@ -433,7 +433,7 @@ The following instructions use the Terraform scripts in the `terraform` director
 2. Set up a Bastion host for SSH access to the EC2 instances, and
 3. Set up an Application Load Balancer (ALB).
 
-**Note**: _Requires an AWS account with the necessary permissions to create and manage resources. Proceed to guide [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) on how to create an AWS Access Key ID and Secret Access Key to gain that necessary permissions._
+**Note**: _Requires an AWS account with the necessary permissions to create and manage resources. Proceed to the guide [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) on how to create a user with an AWS Access Key ID and Secret Access Key to gain the necessary permissions. For convenience, you can attach the following policies to the user: `AmazonEC2FullAccess`, `AmazonVPCFullAccess`, and `IAMFullAccess`. However, be aware that these policies grant a broad range of permissions, which may not adhere to the principle of least privilege. It is advisable to create custom policies that grant only the specific permissions required for your tasks to enhance security._
 
 **Further Notes**:
 - _The following instructions assume the use of Terraform 1.9.8._
